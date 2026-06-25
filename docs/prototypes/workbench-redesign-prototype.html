@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Asset Cutter Workbench Prototype</title>
+    <style>
+      :root {
+        color: #20242a;
+        background: #eef1f4;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 1180px;
+        background: #eef1f4;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #c9d1dc;
+        border-radius: 6px;
+        color: #20242a;
+        cursor: default;
+        display: inline-flex;
+        gap: 7px;
+        justify-content: center;
+        min-height: 34px;
+        padding: 7px 10px;
+      }
+
+      .primary {
+        background: #0b6fb8;
+        border-color: #0b6fb8;
+        color: #fff;
+        font-weight: 750;
+      }
+
+      .ghost {
+        background: transparent;
+      }
+
+      .app {
+        display: grid;
+        grid-template-rows: 64px 1fr 30px;
+        min-height: 100vh;
+      }
+
+      .topbar {
+        align-items: center;
+        background: #f8fafb;
+        border-bottom: 1px solid #d4dbe4;
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 250px minmax(0, 1fr);
+        padding: 10px 14px;
+      }
+
+      .brand h1 {
+        font-size: 20px;
+        letter-spacing: 0;
+        line-height: 1.1;
+        margin: 0;
+      }
+
+      .brand p,
+      .canvasMeta,
+      .muted {
+        color: #647281;
+        font-size: 12px;
+      }
+
+      .brand p {
+        margin: 4px 0 0;
+      }
+
+      .stepIcon {
+        align-items: center;
+        background: #dfe7f0;
+        border-radius: 6px;
+        color: #334152;
+        display: flex;
+        font-size: 15px;
+        font-weight: 800;
+        height: 28px;
+        justify-content: center;
+        width: 28px;
+      }
+
+      .stepCopy strong,
+      .assetRow strong {
+        display: block;
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .stepCopy span {
+        color: #6b7785;
+        display: block;
+        font-size: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .toolbar {
+        align-items: center;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .workspace {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 264px minmax(620px, 1fr) 344px;
+        min-height: 0;
+        padding: 10px;
+      }
+
+      .panel {
+        background: #f8fafb;
+        border: 1px solid #d4dbe4;
+        border-radius: 8px;
+        min-height: 0;
+      }
+
+      .leftPanel,
+      .rightPanel {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        overflow: hidden;
+      }
+
+      .panelHeader {
+        align-items: center;
+        border-bottom: 1px solid #dce3eb;
+        display: flex;
+        justify-content: space-between;
+        min-height: 44px;
+        padding: 10px 12px;
+      }
+
+      .panelHeader h2,
+      .sectionTitle {
+        font-size: 14px;
+        letter-spacing: 0;
+        margin: 0;
+      }
+
+      .panelBody {
+        min-height: 0;
+        overflow: auto;
+        padding: 12px;
+      }
+
+      .toolGroup {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .toolButton {
+        align-items: center;
+        display: grid;
+        gap: 9px;
+        grid-template-columns: 28px minmax(0, 1fr);
+        justify-content: stretch;
+        text-align: left;
+        width: 100%;
+      }
+
+      .toolButton.active {
+        background: #e7f4ff;
+        border-color: #4f9bdd;
+      }
+
+      .toolButton small {
+        color: #6b7785;
+        display: block;
+        font-size: 10px;
+        margin-top: 2px;
+      }
+
+      .assetList {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .assetRow {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #cbd4de;
+        border-radius: 7px;
+        display: grid;
+        gap: 8px;
+        grid-template-columns: 40px minmax(0, 1fr) auto;
+        padding: 7px;
+      }
+
+      .assetRow.active {
+        border-color: #4f9bdd;
+        box-shadow: inset 0 0 0 1px #4f9bdd;
+      }
+
+      .thumb {
+        background:
+          linear-gradient(45deg, rgba(182, 193, 205, 0.45) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(182, 193, 205, 0.45) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(182, 193, 205, 0.45) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(182, 193, 205, 0.45) 75%);
+        background-color: #fff;
+        background-position:
+          0 0,
+          0 6px,
+          6px -6px,
+          -6px 0;
+        background-size: 12px 12px;
+        border: 1px solid #c7d0da;
+        border-radius: 5px;
+        height: 36px;
+        position: relative;
+      }
+
+      .thumb::after {
+        background: #539d76;
+        border-radius: 7px 7px 5px 5px;
+        content: "";
+        height: 20px;
+        left: 11px;
+        position: absolute;
+        top: 8px;
+        width: 16px;
+      }
+
+      .assetRow small {
+        color: #6b7785;
+        font-size: 11px;
+      }
+
+      .canvasArea {
+        display: grid;
+        gap: 8px;
+        grid-template-rows: 42px minmax(0, 1fr);
+        min-height: 0;
+      }
+
+      .canvasToolbar {
+        align-items: center;
+        background: #f8fafb;
+        border: 1px solid #d4dbe4;
+        border-radius: 8px;
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        padding: 5px 6px;
+      }
+
+      .topContext {
+        align-items: center;
+        color: #647281;
+        display: flex;
+        font-size: 12px;
+        gap: 10px;
+        justify-content: flex-end;
+        min-width: 0;
+      }
+
+      .topContext strong {
+        color: #334152;
+      }
+
+      .topContext span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .viewModes,
+      .zoomTools {
+        align-items: center;
+        display: flex;
+        gap: 6px;
+      }
+
+      .viewModes button.active {
+        background: #253243;
+        border-color: #253243;
+        color: #fff;
+      }
+
+      .canvasShell {
+        background:
+          linear-gradient(45deg, rgba(176, 187, 199, 0.44) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(176, 187, 199, 0.44) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(176, 187, 199, 0.44) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(176, 187, 199, 0.44) 75%);
+        background-color: #fbfcfd;
+        background-position:
+          0 0,
+          0 12px,
+          12px -12px,
+          -12px 0;
+        background-size: 24px 24px;
+        border: 1px solid #cbd4de;
+        border-radius: 8px;
+        min-height: 0;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .stage {
+        background: #74b978;
+        border: 1px solid rgba(34, 54, 36, 0.45);
+        box-shadow: 0 16px 44px rgba(36, 47, 58, 0.18);
+        height: 640px;
+        left: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 640px;
+      }
+
+      .stage.cleanPreview {
+        background:
+          linear-gradient(45deg, rgba(255, 255, 255, 0.74) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(255, 255, 255, 0.74) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.74) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.74) 75%);
+        background-color: #c8d2dd;
+        background-position:
+          0 0,
+          0 16px,
+          16px -16px,
+          -16px 0;
+        background-size: 32px 32px;
+      }
+
+      .prop {
+        background: #f4d05e;
+        border: 5px solid #3b3020;
+        box-shadow: inset 0 -12px 0 rgba(131, 96, 40, 0.18);
+        position: absolute;
+      }
+
+      .prop.one {
+        border-radius: 34% 42% 36% 40%;
+        height: 84px;
+        left: 92px;
+        top: 108px;
+        transform: rotate(-10deg);
+        width: 104px;
+      }
+
+      .prop.two {
+        background: #df675c;
+        border-radius: 45%;
+        height: 98px;
+        left: 286px;
+        top: 104px;
+        transform: rotate(8deg);
+        width: 92px;
+      }
+
+      .prop.three {
+        background: #55a8d8;
+        border-radius: 12px 34px 14px 28px;
+        height: 88px;
+        left: 454px;
+        top: 138px;
+        transform: rotate(14deg);
+        width: 96px;
+      }
+
+      .prop.four {
+        background: #71c886;
+        border-radius: 18px;
+        height: 112px;
+        left: 136px;
+        top: 348px;
+        transform: rotate(7deg);
+        width: 92px;
+      }
+
+      .prop.five {
+        background: #d88dd0;
+        border-radius: 38px 20px 42px 18px;
+        height: 96px;
+        left: 378px;
+        top: 358px;
+        transform: rotate(-13deg);
+        width: 108px;
+      }
+
+      .dirtyEdge {
+        border: 2px dashed #f27a1a;
+        border-radius: 14px;
+        height: 42px;
+        left: 438px;
+        position: absolute;
+        top: 122px;
+        width: 92px;
+      }
+
+      .dirtyEdge::after {
+        background: #fff1df;
+        border: 1px solid #f27a1a;
+        border-radius: 5px;
+        color: #8a4200;
+        content: "背景残留";
+        font-size: 11px;
+        left: 40px;
+        padding: 3px 5px;
+        position: absolute;
+        top: -30px;
+        white-space: nowrap;
+      }
+
+      .crop {
+        border: 2px solid #1683dc;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
+        position: absolute;
+      }
+
+      .crop.active {
+        border-color: #ffb236;
+      }
+
+      .crop::before,
+      .crop::after {
+        background: #fff;
+        border: 1px solid currentColor;
+        content: "";
+        height: 9px;
+        position: absolute;
+        width: 9px;
+      }
+
+      .crop::before {
+        left: -6px;
+        top: -6px;
+      }
+
+      .crop::after {
+        bottom: -6px;
+        right: -6px;
+      }
+
+      .crop.one {
+        height: 132px;
+        left: 76px;
+        top: 84px;
+        width: 142px;
+      }
+
+      .crop.two {
+        height: 132px;
+        left: 260px;
+        top: 76px;
+        width: 144px;
+      }
+
+      .crop.three {
+        height: 134px;
+        left: 432px;
+        top: 104px;
+        width: 138px;
+      }
+
+      .crop.four {
+        height: 150px;
+        left: 108px;
+        top: 326px;
+        width: 146px;
+      }
+
+      .crop.five {
+        height: 142px;
+        left: 350px;
+        top: 330px;
+        width: 166px;
+      }
+
+      .floatingHint {
+        background: rgba(248, 250, 251, 0.96);
+        border: 1px solid #d0d8e1;
+        border-radius: 7px;
+        bottom: 14px;
+        box-shadow: 0 10px 24px rgba(26, 36, 48, 0.14);
+        color: #344150;
+        display: grid;
+        gap: 4px;
+        left: 14px;
+        padding: 9px 10px;
+        position: absolute;
+        width: 290px;
+      }
+
+      .floatingHint strong {
+        font-size: 12px;
+      }
+
+      .floatingHint span {
+        color: #667383;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      .rightPanel label {
+        color: #46515d;
+        display: grid;
+        gap: 5px;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      input,
+      select {
+        background: #fff;
+        border: 1px solid #c9d1dc;
+        border-radius: 6px;
+        min-height: 32px;
+        padding: 6px 8px;
+        width: 100%;
+      }
+
+      .section {
+        border-top: 1px solid #dce3eb;
+        display: grid;
+        gap: 10px;
+        padding: 13px 0;
+      }
+
+      .section:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .segmented {
+        display: grid;
+        gap: 6px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .segmented button.active {
+        background: #253243;
+        border-color: #253243;
+        color: #fff;
+      }
+
+      .grid2 {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .rangeRow {
+        align-items: center;
+        display: grid;
+        gap: 8px;
+        grid-template-columns: minmax(0, 1fr) 42px;
+      }
+
+      .rangeRow input {
+        padding: 0;
+      }
+
+      .warning {
+        background: #fff4df;
+        border: 1px solid #e5bf72;
+        border-radius: 6px;
+        color: #765000;
+        font-size: 12px;
+        line-height: 1.42;
+        padding: 8px;
+      }
+
+      .miniPreview {
+        align-items: center;
+        aspect-ratio: 1.3;
+        background:
+          linear-gradient(45deg, rgba(182, 193, 205, 0.46) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(182, 193, 205, 0.46) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(182, 193, 205, 0.46) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(182, 193, 205, 0.46) 75%);
+        background-color: #fff;
+        background-position:
+          0 0,
+          0 8px,
+          8px -8px,
+          -8px 0;
+        background-size: 16px 16px;
+        border: 1px solid #cbd4de;
+        border-radius: 7px;
+        display: flex;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .miniPreview::after {
+        background: #55a8d8;
+        border: 4px solid #3b3020;
+        border-radius: 12px 34px 14px 28px;
+        content: "";
+        height: 78px;
+        transform: rotate(14deg);
+        width: 84px;
+      }
+
+      .statusbar {
+        align-items: center;
+        background: #f8fafb;
+        border-top: 1px solid #d4dbe4;
+        color: #4f5e6f;
+        display: flex;
+        font-size: 12px;
+        justify-content: space-between;
+        padding: 0 12px;
+      }
+
+      .kbd {
+        background: #fff;
+        border: 1px solid #cbd4de;
+        border-radius: 4px;
+        color: #394658;
+        font-size: 11px;
+        padding: 1px 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Asset Cutter</h1>
+          <p>tile-stack-gpt-sheet.png · 2048 x 2048 · 纯色背景</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="topContext">
+            <span><strong>当前工具</strong> 切图 · 5 个区域 · 1 个边缘问题</span>
+          </div>
+          <button>导入</button>
+          <button>保存项目</button>
+          <button>撤销</button>
+          <button class="primary">导出</button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside class="panel leftPanel">
+          <div class="panelHeader">
+            <h2>工具与资源</h2>
+            <button class="ghost">+</button>
+          </div>
+          <div class="panelBody">
+            <div class="toolGroup">
+              <button class="toolButton">
+                <span class="stepIcon">✦</span>
+                <span>
+                  <strong>去色工具</strong>
+                  <small>采样背景、调容差、修边缘</small>
+                </span>
+              </button>
+              <button class="toolButton active">
+                <span class="stepIcon">□</span>
+                <span>
+                  <strong>切图工具</strong>
+                  <small>自动识别、手动框选、微调边界</small>
+                </span>
+              </button>
+              <button class="toolButton">
+                <span class="stepIcon">⌁</span>
+                <span>
+                  <strong>资源组</strong>
+                  <small>统一输出框、居中和 anchor</small>
+                </span>
+              </button>
+            </div>
+
+            <h3 class="sectionTitle">切图区域</h3>
+            <div class="assetList">
+              <div class="assetRow">
+                <div class="thumb"></div>
+                <div>
+                  <strong>prop.coin_stack</strong>
+                  <small>142 x 132 · clean</small>
+                </div>
+                <input type="checkbox" checked />
+              </div>
+              <div class="assetRow">
+                <div class="thumb"></div>
+                <div>
+                  <strong>prop.red_gem</strong>
+                  <small>144 x 132 · clean</small>
+                </div>
+                <input type="checkbox" checked />
+              </div>
+              <div class="assetRow active">
+                <div class="thumb"></div>
+                <div>
+                  <strong>prop.blue_tile</strong>
+                  <small>138 x 134 · 背景残留</small>
+                </div>
+                <input type="checkbox" checked />
+              </div>
+              <div class="assetRow">
+                <div class="thumb"></div>
+                <div>
+                  <strong>prop.green_box</strong>
+                  <small>146 x 150 · clean</small>
+                </div>
+                <input type="checkbox" checked />
+              </div>
+              <div class="assetRow">
+                <div class="thumb"></div>
+                <div>
+                  <strong>prop.magic_badge</strong>
+                  <small>166 x 142 · clean</small>
+                </div>
+                <input type="checkbox" checked />
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="canvasArea">
+          <div class="canvasToolbar">
+            <div class="viewModes">
+              <button>原图</button>
+              <button class="active">去色结果</button>
+              <button>Alpha</button>
+              <button>边缘</button>
+              <button>输出框</button>
+            </div>
+            <div class="zoomTools">
+              <span class="canvasMeta">画板 2048 x 2048 · 缩放 48%</span>
+              <button>-</button>
+              <button>适应</button>
+              <button>+</button>
+            </div>
+          </div>
+
+          <div class="canvasShell">
+            <div class="stage cleanPreview">
+              <div class="prop one"></div>
+              <div class="prop two"></div>
+              <div class="prop three"></div>
+              <div class="prop four"></div>
+              <div class="prop five"></div>
+              <div class="crop one"></div>
+              <div class="crop two"></div>
+              <div class="crop three active"></div>
+              <div class="crop four"></div>
+              <div class="crop five"></div>
+              <div class="dirtyEdge"></div>
+            </div>
+            <div class="floatingHint">
+              <strong>非线性工作流状态</strong>
+              <span>当前在切图阶段发现 `prop.blue_tile` 上方仍有背景残留。可以直接切回去色工具修 clean source，已有切图框会保留并自动刷新预览。</span>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel rightPanel">
+          <div class="panelHeader">
+            <h2>切图属性</h2>
+            <span class="muted">选中 prop.blue_tile</span>
+          </div>
+          <div class="panelBody">
+            <section class="section">
+              <h3 class="sectionTitle">当前工具</h3>
+              <div class="segmented">
+                <button>自动识别</button>
+                <button class="active">矩形</button>
+                <button>编辑点</button>
+              </div>
+              <div class="warning">
+                选中区域顶部检测到背景残留。建议切回「去色工具」提高容差或使用边缘恢复视图确认。
+              </div>
+              <button class="primary">回到去色修复</button>
+            </section>
+
+            <section class="section">
+              <h3 class="sectionTitle">区域信息</h3>
+              <label>
+                资源 ID
+                <input value="prop.blue_tile" />
+              </label>
+              <label>
+                显示名称
+                <input value="Blue Tile" />
+              </label>
+              <div class="grid2">
+                <label>
+                  X
+                  <input value="432" />
+                </label>
+                <label>
+                  Y
+                  <input value="104" />
+                </label>
+                <label>
+                  W
+                  <input value="138" />
+                </label>
+                <label>
+                  H
+                  <input value="134" />
+                </label>
+              </div>
+            </section>
+
+            <section class="section">
+              <h3 class="sectionTitle">预览</h3>
+              <div class="miniPreview"></div>
+              <div class="grid2">
+                <button>单张导出</button>
+                <button>加入资源组</button>
+              </div>
+            </section>
+
+            <section class="section">
+              <h3 class="sectionTitle">资源组预留</h3>
+              <label>
+                目标组
+                <select>
+                  <option>props_256（后续启用）</option>
+                  <option>icons_128（后续启用）</option>
+                </select>
+              </label>
+              <label>
+                输出框
+                <div class="rangeRow">
+                  <input type="range" value="70" />
+                  <span class="muted">256</span>
+                </div>
+              </label>
+            </section>
+          </div>
+        </aside>
+      </section>
+
+      <footer class="statusbar">
+        <span>状态：切图阶段 · clean source 已应用 · 发现 1 个边缘问题</span>
+        <span><span class="kbd">Space</span> 拖动画板 · <span class="kbd">Cmd/Ctrl A</span> 全选区域</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+.vite/
+.playwright-cli/
+dist/
+dist-single/
+test-results/
+playwright-report/
+*.tsbuildinfo
