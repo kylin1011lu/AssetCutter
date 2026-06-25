@@ -1,4 +1,14 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type PointerEvent,
+  type ReactNode,
+} from 'react';
 import {
   CheckSquare,
   Copy,
@@ -77,6 +87,7 @@ import {
   type PreviewBoardRegion,
 } from './previewBoard';
 import { ProjectFooter } from './ProjectFooter';
+import { getImageFileFromDataTransfer, hasFileDragData, hasImageDragData } from './dragImport';
 import './App.css';
 
 type ActiveTool = 'background' | 'crop' | 'assetGroups' | 'previewBoard';
@@ -126,6 +137,7 @@ export function App() {
   const [autoDetectConfirmOpen, setAutoDetectConfirmOpen] = useState(false);
   const [openParameterHelp, setOpenParameterHelp] = useState<keyof Translation['parameterHelp'] | null>(null);
   const [backgroundPointPickEnabled, setBackgroundPointPickEnabled] = useState(false);
+  const [dragImportActive, setDragImportActive] = useState(false);
 
   const selectedRegion = useMemo(
     () => project?.regions.find((region) => region.id === selectedRegionId) ?? null,
@@ -372,6 +384,44 @@ export function App() {
       };
     });
     setStatus(nextStatus);
+  }
+
+  function handleCanvasDragEnter(event: DragEvent<HTMLElement>) {
+    if (!hasFileDragData(event.dataTransfer)) return;
+    const acceptsImage = hasImageDragData(event.dataTransfer);
+    event.preventDefault();
+    event.dataTransfer.dropEffect = acceptsImage ? 'copy' : 'none';
+    setDragImportActive(acceptsImage);
+  }
+
+  function handleCanvasDragOver(event: DragEvent<HTMLElement>) {
+    if (!hasFileDragData(event.dataTransfer)) return;
+    const acceptsImage = hasImageDragData(event.dataTransfer);
+    event.preventDefault();
+    event.dataTransfer.dropEffect = acceptsImage ? 'copy' : 'none';
+    setDragImportActive(acceptsImage);
+  }
+
+  function handleCanvasDragLeave(event: DragEvent<HTMLElement>) {
+    const nextTarget = event.relatedTarget as Node | null;
+    if (nextTarget && event.currentTarget.contains(nextTarget)) return;
+    setDragImportActive(false);
+  }
+
+  function handleCanvasDrop(event: DragEvent<HTMLElement>) {
+    if (!hasFileDragData(event.dataTransfer)) return;
+    event.preventDefault();
+    setDragImportActive(false);
+
+    const file = getImageFileFromDataTransfer(event.dataTransfer);
+    if (!file) {
+      setStatus(t.importFailed);
+      return;
+    }
+
+    void handleImageFile(file).catch((error: unknown) =>
+      setStatus(error instanceof Error ? error.message : t.importFailed),
+    );
   }
 
   function addRegion() {
@@ -717,6 +767,9 @@ export function App() {
     : null;
   const previewDisplayLabel = isWholeImageSelection ? t.wholeImageName : previewRegion?.label;
   const canvasBackgroundStyle = getPreviewBackgroundStyle(canvasBackgroundMode, canvasBackgroundColor);
+  const canvasWorkbenchClass = dragImportActive
+    ? 'canvasWorkbench prototypeCanvasWorkbench dragImportActive'
+    : 'canvasWorkbench prototypeCanvasWorkbench';
   const localBackgroundEditCount = project?.background.edits.filter((edit) => edit.type === 'local-chroma-key').length ?? 0;
 
   return (
@@ -873,7 +926,14 @@ export function App() {
           </div>
         </aside>
 
-        <section className="canvasWorkbench prototypeCanvasWorkbench" data-testid="canvas-workbench">
+        <section
+          className={canvasWorkbenchClass}
+          data-testid="canvas-workbench"
+          onDragEnter={handleCanvasDragEnter}
+          onDragOver={handleCanvasDragOver}
+          onDragLeave={handleCanvasDragLeave}
+          onDrop={handleCanvasDrop}
+        >
           <div className="workbenchToolbar prototypeCanvasToolbar" data-testid="workbench-toolbar">
             {activeTool === 'previewBoard' ? (
               <div className="previewBoardToolbarTitle">
@@ -908,6 +968,13 @@ export function App() {
                 : project ? `${project.sourceRef.width} x ${project.sourceRef.height}` : t.sizeLabel}
             </span>
           </div>
+
+          {dragImportActive && (
+            <div className="dragImportOverlay" data-testid="drag-import-overlay">
+              <ImagePlus size={24} />
+              <span>{t.dropImageToImport}</span>
+            </div>
+          )}
 
           {activeTool === 'previewBoard' ? (
             <PreviewBoard

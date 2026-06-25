@@ -307,6 +307,28 @@ legend {
   grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
   min-height: 0;
+  position: relative;
+}
+
+.dragImportActive {
+  outline: 2px solid #0f6fb7;
+  outline-offset: -2px;
+}
+
+.dragImportOverlay {
+  align-items: center;
+  background: rgba(248, 250, 251, 0.92);
+  border: 2px dashed #0f6fb7;
+  border-radius: 8px;
+  color: #0f6fb7;
+  display: flex;
+  font-weight: 750;
+  gap: 10px;
+  inset: 52px 8px 8px;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  z-index: 20;
 }
 
 .workbenchToolbar {
