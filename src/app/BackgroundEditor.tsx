@@ -3,6 +3,7 @@ import { Check, X } from 'lucide-react';
 import { processBackground } from '../canvas/backgroundProcessing';
 import type { BackgroundEdit, BackgroundSettings } from '../model/project';
 import type { Translation } from '../i18n/translations';
+import { BufferedNumberInput } from './BufferedNumberInput';
 import { getAnchoredPreviewScroll } from './previewZoom';
 
 type BackgroundEditorView = 'result' | 'original' | 'alpha' | 'edges';
@@ -227,12 +228,11 @@ export function BackgroundEditor({
             </label>
             <label>
               {t.tolerance}
-              <input
-                type="number"
+              <BufferedNumberInput
                 min={0}
                 max={255}
                 value={draft.tolerance}
-                onChange={(event) => patchDraft({ tolerance: Number(event.target.value) })}
+                onCommit={(value) => patchDraft({ tolerance: value })}
               />
             </label>
             <label>
@@ -247,12 +247,11 @@ export function BackgroundEditor({
             </label>
             <label>
               {t.edgeGrow}
-              <input
-                type="number"
+              <BufferedNumberInput
                 min={-16}
                 max={16}
                 value={draft.edgeGrow}
-                onChange={(event) => patchDraft({ edgeGrow: Number(event.target.value) })}
+                onCommit={(value) => patchDraft({ edgeGrow: value })}
               />
             </label>
             <label>

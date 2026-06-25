@@ -87,6 +87,7 @@ import {
   type PreviewBoardRegion,
 } from './previewBoard';
 import { ProjectFooter } from './ProjectFooter';
+import { BufferedNumberInput } from './BufferedNumberInput';
 import { getImageFileFromDataTransfer, hasFileDragData, hasImageDragData } from './dragImport';
 import './App.css';
 
@@ -1088,14 +1089,13 @@ export function App() {
                     setOpenHelp={setOpenParameterHelp}
                     t={t}
                   >
-                    <input
+                    <BufferedNumberInput
                       id="background-tolerance"
-                      type="number"
                       min={0}
                       max={255}
                       value={project.background.settings.tolerance}
                       disabled={editingDisabled}
-                      onChange={(event) => updateBackgroundSettings({ tolerance: Number(event.target.value) })}
+                      onCommit={(value) => updateBackgroundSettings({ tolerance: value })}
                     />
                   </ParameterField>
                 </div>
@@ -1108,14 +1108,13 @@ export function App() {
                     setOpenHelp={setOpenParameterHelp}
                     t={t}
                   >
-                    <input
+                    <BufferedNumberInput
                       id="background-soft-edge"
-                      type="number"
                       min={0}
                       max={255}
                       value={project.background.settings.softEdge}
                       disabled={editingDisabled}
-                      onChange={(event) => updateBackgroundSettings({ softEdge: Number(event.target.value) })}
+                      onCommit={(value) => updateBackgroundSettings({ softEdge: value })}
                     />
                   </ParameterField>
                   <ParameterField
@@ -1126,14 +1125,13 @@ export function App() {
                     setOpenHelp={setOpenParameterHelp}
                     t={t}
                   >
-                    <input
+                    <BufferedNumberInput
                       id="background-edge-grow"
-                      type="number"
                       min={0}
                       max={16}
                       value={project.background.settings.edgeGrow}
                       disabled={editingDisabled}
-                      onChange={(event) => updateBackgroundSettings({ edgeGrow: Number(event.target.value) })}
+                      onCommit={(value) => updateBackgroundSettings({ edgeGrow: value })}
                     />
                   </ParameterField>
                 </div>
@@ -1146,14 +1144,13 @@ export function App() {
                     setOpenHelp={setOpenParameterHelp}
                     t={t}
                   >
-                    <input
+                    <BufferedNumberInput
                       id="background-edge-smoothing"
-                      type="number"
                       min={0}
                       max={100}
                       value={project.background.settings.edgeSmoothing}
                       disabled={editingDisabled}
-                      onChange={(event) => updateBackgroundSettings({ edgeSmoothing: Number(event.target.value) })}
+                      onCommit={(value) => updateBackgroundSettings({ edgeSmoothing: value })}
                     />
                   </ParameterField>
                   <ParameterField
@@ -1164,14 +1161,13 @@ export function App() {
                     setOpenHelp={setOpenParameterHelp}
                     t={t}
                   >
-                    <input
+                    <BufferedNumberInput
                       id="background-spill-removal"
-                      type="number"
                       min={0}
                       max={100}
                       value={project.background.settings.spillRemoval}
                       disabled={editingDisabled}
-                      onChange={(event) => updateBackgroundSettings({ spillRemoval: Number(event.target.value) })}
+                      onCommit={(value) => updateBackgroundSettings({ spillRemoval: value })}
                     />
                   </ParameterField>
                 </div>
