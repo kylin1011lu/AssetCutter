@@ -193,7 +193,7 @@ legend {
 
 .appRoot {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
   min-height: 100vh;
 }
 
@@ -1235,6 +1235,31 @@ legend {
   padding: 8px 18px;
 }
 
+.projectFooter {
+  align-items: center;
+  background: #eef3f8;
+  border-top: 1px solid #d5dbe2;
+  color: #596775;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 10px;
+  justify-content: center;
+  min-height: 30px;
+  padding: 7px 18px;
+}
+
+.projectFooter a {
+  color: #0f6fb7;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.projectFooter a:hover {
+  color: #095f9f;
+  text-decoration: underline;
+}
+
 .visuallyHidden {
   height: 1px;
   left: -9999px;
@@ -1279,11 +1304,14 @@ legend {
 }
 
 .compactLanguage {
-  max-width: 128px;
+  flex: 0 0 auto;
+  max-width: none;
+  white-space: nowrap;
 }
 
 .compactLanguage select {
-  width: 82px;
+  flex: 0 0 112px;
+  width: 112px;
 }
 
 .prototypeWorkspace {

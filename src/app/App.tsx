@@ -76,6 +76,7 @@ import {
   type PreviewBoardItem,
   type PreviewBoardRegion,
 } from './previewBoard';
+import { ProjectFooter } from './ProjectFooter';
 import './App.css';
 
 type ActiveTool = 'background' | 'crop' | 'assetGroups' | 'previewBoard';
@@ -1427,6 +1428,7 @@ export function App() {
       </section>
 
       <footer className="statusbar">{status}</footer>
+      <ProjectFooter t={t} />
 
       {autoDetectConfirmOpen && (
         <div className="confirmDialogBackdrop" data-testid="auto-detect-confirmation">
